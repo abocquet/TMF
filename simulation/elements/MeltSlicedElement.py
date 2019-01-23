@@ -28,7 +28,6 @@ class MeltSlicedElement(SlicedElement):
             molten_slice = self.slices[self.number_of_molten_slices]
             absorber = molten_slice.prev_exchange.prev_bloc
 
-            absorber.T -= latent_fusion_energy / (absorber.mass * absorber.cp)
             absorber.mass += molten_slice.mass
             absorber.cp = (absorber.cp * absorber.mass + molten_slice.cp * molten_slice.mass) / (
                         absorber.mass + molten_slice.mass)
@@ -47,3 +46,14 @@ class MeltSlicedElement(SlicedElement):
     def go_next_state(self):
         for slice in self.slices:
             slice.go_next_state()
+
+    @property
+    def history(self):
+        keys = self.slices[0].history.keys()
+        res = {k: [] for k in keys}
+
+        for slice in self.slices:
+            for k in keys:
+                res[k].append(slice.history[k])
+
+        return res
