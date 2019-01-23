@@ -21,8 +21,8 @@ hauteur_beton_sacrificiel = 10  # metres
 temperature_initiale_air = 70 + 273  # ° kelvins
 masse_aire = 1000  # kg
 densite_air = 0.012
-cp_air = 1 # absurde !!!
-conductivite_air = 1 # absurde !!!
+cp_air = 1100 # absurde !!!
+conductivite_air = 0.08 # absurde !!!
 
 coefficient_echange_air_corium = 5  # W/(m2.K)
 
@@ -36,10 +36,10 @@ temperature_frontiere_beton = 70 + 273  # K
 
 temperature_initiale_corium = 273 * 2000
 production_chaleur_corium = 30e6
-densite_corium = 100  # absurde !!!
+densite_corium = 4600  # absurde !!!
 x_corium = 2  # absurde !!!
-cp_corium = 23  # absurde !!!
-conductivite_corium = 0.3  # absurde !!!
+cp_corium = 1700  # absurde !!!
+conductivite_corium = 3  # absurde !!!
 
 # -------------  Simulation
 
