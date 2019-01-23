@@ -14,6 +14,8 @@ class MeltSlicedElement(SlicedElement):
         self.latent_metling_heat = latent_melting_heat
         self.number_of_molten_slices = 0  # slice 0 is on top, slice n is on bottom
 
+        self.fusion_energy_acc = 0
+
     def set_prev_exchange(self, prev_exchange):
         self.slices[self.number_of_molten_slices].set_prev_exchange(prev_exchange)
 
@@ -24,21 +26,29 @@ class MeltSlicedElement(SlicedElement):
     def calc_next_step(self, dt):
         latent_fusion_energy = self.latent_metling_heat * self.slices[0].mass
 
-        if self.slices[self.number_of_molten_slices].T >= self.melting_temperature + latent_fusion_energy:
-            molten_slice = self.slices[self.number_of_molten_slices]
-            absorber = molten_slice.prev_exchange.prev_bloc
+        if self.slices[self.number_of_molten_slices].T >= self.melting_temperature:
 
-            absorber.mass += molten_slice.mass
-            absorber.cp = (absorber.cp * absorber.mass + molten_slice.cp * molten_slice.mass) / (
-                        absorber.mass + molten_slice.mass)
+            self.fusion_energy_acc += (self.slices[self.number_of_molten_slices].T - self.melting_temperature) * self.slices[0].mass * self.slices[0].cp
+            self.slices[self.number_of_molten_slices].T = self.melting_temperature
 
-            self.number_of_molten_slices += 1
-            next_non_molten_slice = self.slices[self.number_of_molten_slices]
+            if self.fusion_energy_acc >= latent_fusion_energy:
 
-            next_non_molten_slice.set_prev_exchange(molten_slice.prev_exchange)
+                molten_slice = self.slices[self.number_of_molten_slices]
+                absorber = molten_slice.prev_exchange.prev_bloc
 
-            molten_slice.prev_exchange = None
-            molten_slice.next_exchange = None
+                absorber.mass += molten_slice.mass
+                absorber.cp = (absorber.cp * absorber.mass + molten_slice.cp * molten_slice.mass) / (
+                            absorber.mass + molten_slice.mass)
+
+                self.number_of_molten_slices += 1
+                next_non_molten_slice = self.slices[self.number_of_molten_slices]
+
+                next_non_molten_slice.set_prev_exchange(molten_slice.prev_exchange)
+
+                molten_slice.prev_exchange = None
+                molten_slice.next_exchange = None
+
+                self.fusion_energy_acc = 0.0
 
         for slice in self.slices:
             slice.calc_next_step(dt)
