@@ -45,7 +45,7 @@ surface_acier = 2.4
 epaisseur_acier = 0.04
 
 temperature_initiale_corium = 2273
-production_chaleur_corium = 30e6
+production_chaleur_corium = 35e6
 
 masse_volumique_air = 1.2 # kg/m^3
 
@@ -55,7 +55,7 @@ masse_volumique_air = 1.2 # kg/m^3
 model = Model([
     Element(temperature_initiale_air, masse_volumique_air, 6, capacite_thermique_air , surface_beton, conductivite_air,0),
     Exchange(h=5, radiations=False),
-    Element(temperature_initiale_corium, masse_volumique_corium, volume_corium/ surface_beton,capacite_thermique_corium, surface_beton, conductivite_corium, 35),
+    Element(temperature_initiale_corium, masse_volumique_corium, volume_corium/ surface_beton,capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
     SolidExchange(radiations=False),
     MeltSlicedElement(temperature_intiale_beton, masse_volumique_beton,hauteur_beton_sacrificiel, surface_beton,cp_beton,conductivite_beton,10,temperature_fusion_beton,chaleur_latente_beton,0,False),
     SolidExchange(radiations=False),
@@ -64,11 +64,11 @@ model = Model([
 
 ])
 
-model.run(timestep=1e0, steps=10**6)
+model.run(timestep=1e0, steps=10*3600)
 
 #plt.imshow(model.layers[0].history["T"][:, 0::100])
 #plt.plot(model.layers[1].history)
 #plt.show()
 
-plt.plot(model.layers[1].history["T"])
+plt.plot(model.layers[0].history["T"])
 plt.show()
