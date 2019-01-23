@@ -1,3 +1,5 @@
+import numpy as np
+
 from simulation.Exchange import Exchange
 from simulation.elements.Element import Element
 from simulation.elements.ElementMixin import ElementMixin
@@ -46,5 +48,8 @@ class SlicedElement(ElementMixin):
         for slice in self.slices:
             for k in keys:
                 res[k].append(slice.history[k])
+
+        for k in keys:
+            res[k] = np.array(res[k])
 
         return res
