@@ -6,6 +6,8 @@ from simulation.exchanges.Exchange import Exchange
 from simulation.exchanges.SolidExchange import SolidExchange
 from simulation.models.Model import Model
 
+import numpy as np
+
 # ------------- Définition des grandeurs
 nombre_couches = 10
 pas_de_temps = 30  # s
@@ -69,3 +71,5 @@ model = Model([
 time = model.run(timestep=1e0, time=3600 * 10)
 plt.plot(time, model.layers[2].history["T"][0])
 plt.show()
+
+print(np.argmax(np.array(model.layers[-1].history["T"]) > (1500 + 273)))
