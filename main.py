@@ -58,11 +58,11 @@ model = Model([
         number_of_slices=200,
         radiations_inside=True
     ),
-    SolidExchange(radiations=False),
+    Exchange(h=conductivite_beton, radiations=False),
     ImmutableElement(temperature_intiale_beton)  # béton limite
 ])
 
-model.run(timestep=1e-2, steps=10 ** 3)
+model.run(timestep=1e-4, steps=10 ** 3)
 
 ####
 plt.imshow(model.layers[1].history["T"][:, 0::1])
