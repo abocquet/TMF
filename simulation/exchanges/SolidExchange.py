@@ -1,4 +1,4 @@
-class Exchange:
+class SolidExchange:
 
     def __init__(self, prev_bloc=None, next_bloc=None, radiations=False):
         """
