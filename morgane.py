@@ -64,7 +64,6 @@ model = Model([
 
 ])
 
-model.run(timestep=1e0, time=10 * 3600)
 time = model.run(timestep=1e0, time=3600)
-plt.plot(time, model.layers[0].history["T"])
+plt.plot(time, model.layers[2].history["T"][0])
 plt.show()
