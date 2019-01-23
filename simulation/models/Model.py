@@ -1,5 +1,5 @@
 import progressbar
-
+import numpy as np
 
 class Model:
 
@@ -21,7 +21,9 @@ class Model:
             layers[i-1].set_next_exchange(exchange)
             layers[i+1].set_prev_exchange(exchange)
 
-    def run(self, timestep=1e-3, steps=1_000):
+    def run(self, timestep=1e-3, time=30):
+
+        steps = int(time / timestep)
 
         for _ in progressbar.progressbar(range(steps)):
             for layer in self.layers:
@@ -29,6 +31,8 @@ class Model:
 
             for layer in self.layers:
                 layer.go_next_state()
+
+        return np.linspace(0, time, steps)
 
     def summary(self):
         layer = self.layers[0]
