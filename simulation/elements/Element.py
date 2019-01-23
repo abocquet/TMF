@@ -2,22 +2,25 @@ from simulation.elements.ElementMixin import ElementMixin
 
 
 class Element(ElementMixin):
-    def __init__(self, T0, density, x, cp, energy_production=0):
+    def __init__(self, T0, density, x, cp, S, energy_production=0):
         self.T = T0  # temperature
-        self.density = density  # density
+        self.mass = x * S * density
         self.x = x  # thickness
         self.cp = cp  # thermal capacity
         self.energy_production = energy_production
+        self.S = S
 
         self.prev_exchange = None
         self.next_exchange = None
 
         self.dT = 0.0
-        self.__history = []
-
+        self.__history = {"T": [], "x": [], "cp": [], "mass": []}
 
     def go_next_state(self):
-        self.__history.append(self.T)
+        self.__history["T"].append(self.T)
+        self.__history["x"].append(self.x)
+        self.__history["cp"].append(self.cp)
+        self.__history["mass"].append(self.mass)
         self.T += self.dT
 
     def set_prev_exchange(self, prev_exchange):
@@ -30,7 +33,7 @@ class Element(ElementMixin):
 
     @property
     def history(self):
-        return list(map(float, self.__history))
+        return self.__history
 
     def calc_next_step(self, dt):
         sigma = 5.70e-8  # sigma de la loi de stephan
@@ -51,5 +54,4 @@ class Element(ElementMixin):
             if self.next_exchange.radiations:
                 self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4) * dt
 
-        mass = self.density * self.x
-        self.dT /= (self.cp * mass)
+        self.dT /= (self.cp * self.mass)
