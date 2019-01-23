@@ -64,11 +64,10 @@ model = Model([
 
 ])
 
-model.run(timestep=1e0, steps=10**6)
+time = model.run(timestep=1e0, time=3600)
 
-#plt.imshow(model.layers[0].history["T"][:, 0::100])
-#plt.plot(model.layers[1].history)
+####
+#plt.imshow(model.layers[1].history["T"][:, 0::1])
 #plt.show()
-
-plt.plot(model.layers[1].history["T"])
+plt.plot(time, model.layers[0].history["T"])
 plt.show()
