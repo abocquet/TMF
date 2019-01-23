@@ -68,7 +68,7 @@ model = Model([
 ])
 
 time = model.run(timestep=1e0, time=1000)
-plt.plot(time, model.layers[1].history["T"])
+plt.plot(time, model.layers[-1].history["T"])
 plt.show()
 
-print(np.argmax(np.array(model.layers[-1].history["T"]) > (-1500 + 273)))
+print(np.argmax(np.array(model.layers[-1].history["T"]) > (1500 + 273)))
