@@ -48,9 +48,10 @@ model = Model([
                       number_of_slices=200)
 ])
 
-model.run(timestep=1e-2, steps=10 ** 1)
+model.run(timestep=1e-2, steps=10 ** 3)
 
 ####
-plt.imshow(model.layers[1].history["temperature"][:, 0::100])
-plt.plot(model.layers[1].history)
+plt.imshow(model.layers[1].history["T"][:, 0::1])
+plt.show()
+plt.plot(model.layers[0].history["T"])
 plt.show()

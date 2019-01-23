@@ -11,7 +11,7 @@ class SlicedElement(ElementMixin):
         self.slices = []
 
         for i in range(number_of_slices):
-            self.slices.append(Element(T0, density, x / number_of_slices, S, cp, energy_production))
+            self.slices.append(Element(T0, density, x / number_of_slices, cp, S, thermal_conductivity, energy_production))
 
         for i in range(0, number_of_slices - 1):
             e = Exchange(h=thermal_conductivity, radiations=radiations_inside)
@@ -48,5 +48,8 @@ class SlicedElement(ElementMixin):
         for slice in self.slices:
             for k in keys:
                 res[k].append(slice.history[k])
+
+        for k in keys:
+            res[k] = np.array(res[k])
 
         return res

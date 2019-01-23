@@ -2,13 +2,14 @@ from simulation.elements.ElementMixin import ElementMixin
 
 
 class Element(ElementMixin):
-    def __init__(self, T0, density, x, cp, S, energy_production=0):
+    def __init__(self, T0, density, x, cp, S, thermal_conductivity, energy_production=0):
         self.T = T0  # temperature
         self.mass = x * S * density
         self.x = x  # thickness
         self.cp = cp  # thermal capacity
         self.energy_production = energy_production
         self.S = S
+        self.thermal_conductivity = thermal_conductivity
 
         self.prev_exchange = None
         self.next_exchange = None
