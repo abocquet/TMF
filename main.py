@@ -1,9 +1,13 @@
+###
+
 import matplotlib.pyplot as plt
 
 from simulation.Exchange import Exchange
-from simulation.elements.Element import Element
-from simulation.elements.SlicedElement import SlicedElement
+from simulation.elements.ImmutableElement import ImmutableElement
+from simulation.elements.MeltSlicedElement import MeltSlicedElement
 from simulation.models.Model import Model
+
+###
 
 # ------------- Définition des grandeurs
 nombre_couches = 30
@@ -30,18 +34,23 @@ production_chaleur_corium = 30e6
 
 masse_volumique_air = 1.2
 
-#-------------  Simulation
+# -------------  Simulation
 
 
 model = Model([
-    SlicedElement(temperature_initiale_air, masse_volumique_air, thermal_conductivity=0.01, x=10, cp=1.0,
-                  number_of_slices=200),
+    ImmutableElement(temperature_intiale_beton + temperature_fusion_beton),
     Exchange(h=5, radiations=False),
-    Element(temperature_intiale_beton + 100, masse_volumique_beton, 1, 1.0)
+    MeltSlicedElement(temperature_intiale_beton, masse_volumique_air,
+                      S=100,  x=10, cp=1.0,
+                      melting_temperature=temperature_fusion_beton,
+                      latent_melting_heat=chaleur_latente_beton,
+                      thermal_conductivity=0.01,
+                      number_of_slices=200)
 ])
 
-model.run(timestep=1e-2, steps=10**4)
+model.run(timestep=1e-2, steps=10 ** 1)
 
-plt.imshow(model.layers[0].history[:, 0::100])
-#plt.plot(model.layers[1].history)
+####
+plt.imshow(model.layers[1].history["temperature"][:, 0::100])
+plt.plot(model.layers[1].history)
 plt.show()

@@ -7,11 +7,11 @@ from simulation.elements.ElementMixin import ElementMixin
 
 class SlicedElement(ElementMixin):
 
-    def __init__(self, T0, density, x, cp, thermal_conductivity, number_of_slices, energy_production=0, radiations_inside=False):
+    def __init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, energy_production=0, radiations_inside=False):
         self.slices = []
 
         for i in range(number_of_slices):
-            self.slices.append(Element(T0, density, x / number_of_slices, cp, energy_production))
+            self.slices.append(Element(T0, density, x / number_of_slices, S, cp, energy_production))
 
         for i in range(0, number_of_slices - 1):
             e = Exchange(h=thermal_conductivity, radiations=radiations_inside)
@@ -42,4 +42,11 @@ class SlicedElement(ElementMixin):
 
     @property
     def history(self):
-        return np.array([s.history for s in self.slices])
+        keys = self.slices[0].history.keys()
+        res = {k: [] for k in keys}
+
+        for slice in self.slices:
+            for k in keys:
+                res[k].append(slice.history[k])
+
+        return res
