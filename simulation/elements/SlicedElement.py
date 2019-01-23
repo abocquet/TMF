@@ -1,8 +1,8 @@
 import numpy as np
 
-from simulation.Exchange import Exchange
 from simulation.elements.Element import Element
 from simulation.elements.ElementMixin import ElementMixin
+from simulation.exchanges.Exchange import Exchange
 
 
 class SlicedElement(ElementMixin):
