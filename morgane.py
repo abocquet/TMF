@@ -65,5 +65,5 @@ model = Model([
 ])
 
 time = model.run(timestep=1e0, time=3600)
-plt.plot(time, model.layers[2].history["T"][0])
+plt.plot(time, model.layers[3].history["T"])
 plt.show()
