@@ -41,10 +41,10 @@ class MeltSlicedElement(SlicedElement):
 
                 absorber = molting_slice.prev_exchange.prev_bloc
 
+                absorber.T -= (absorber.T - molting_slice.T) * molting_slice.cp * molting_slice.mass / (absorber.cp * absorber.mass)
                 absorber.mass += molting_slice.mass
                 absorber.cp = (absorber.cp * absorber.mass + molting_slice.cp * molting_slice.mass) / (
                             absorber.mass + molting_slice.mass)
-                absorber.T -= self.fusion_energy_acc / (absorber.cp * absorber.mass)
 
                 self.number_of_molten_slices += 1
 

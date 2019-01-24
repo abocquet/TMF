@@ -54,7 +54,7 @@ class Element(ElementMixin):
             assert self.next_exchange.prev_bloc == self
 
             self.dT += self.next_exchange.h * (self.next_exchange.next_bloc.T - self.T) * dt
-            
+
             if self.next_exchange.radiations:
                 self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4)
 
