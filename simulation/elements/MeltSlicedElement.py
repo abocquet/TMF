@@ -26,7 +26,7 @@ class MeltSlicedElement(SlicedElement):
         if self.number_of_molten_slices == len(self.slices):
             return
 
-        latent_fusion_energy = self.latent_metling_heat * self.slices[0].mass
+        latent_fusion_energy = self.latent_metling_heat * self.slices[0].mass()
 
         if self.slices[self.number_of_molten_slices].T >= self.melting_temperature:
 
@@ -38,12 +38,7 @@ class MeltSlicedElement(SlicedElement):
             if self.fusion_energy_acc >= latent_fusion_energy:
 
                 absorber = molting_slice.prev_exchange.prev_bloc
-
-                #absorber.T -= (absorber.T - molting_slice.T) * molting_slice.cp * molting_slice.mass / (absorber.cp * absorber.mass)
-                absorber.T -= (absorber.T * absorber.cp * absorber.mass - molting_slice.T * molting_slice.cp * molting_slice.mass) / (molting_slice.cp * molting_slice.mass + absorber.cp * absorber.mass)
-                absorber.cp = (absorber.cp * absorber.mass + molting_slice.cp * molting_slice.mass) / (
-                            absorber.mass + molting_slice.mass)
-                absorber.mass += molting_slice.mass
+                absorber.absorb(molting_slice)
 
                 self.number_of_molten_slices += 1
 
@@ -68,7 +63,10 @@ class MeltSlicedElement(SlicedElement):
             slice.calc_next_step(dt)
 
     def go_next_state(self):
+        i = 0
         for slice in self.slices:
+            print("{} {}".format(i, slice.dT))
+
             slice.go_next_state()
 
     @property

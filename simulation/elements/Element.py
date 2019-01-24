@@ -4,12 +4,14 @@ from simulation.elements.ElementMixin import ElementMixin
 class Element(ElementMixin):
     def __init__(self, T0, density, x, cp, S, thermal_conductivity, energy_production=0):
         self.T = T0  # temperature
-        self.mass = x * S * density
-        self.x = x  # thickness
-        self.cp = cp  # thermal capacity
-        self.energy_production = energy_production
         self.S = S
-        self.thermal_conductivity = thermal_conductivity
+        self.__mass = x * S * density
+        self.__x = x  # thickness
+        self.__cp = cp  # thermal capacity
+        self.__energy_production = energy_production
+        self.__thermal_conductivity = thermal_conductivity
+
+        self.absorbed = []
 
         self.prev_exchange = None
         self.next_exchange = None
@@ -32,15 +34,65 @@ class Element(ElementMixin):
         self.next_exchange = next_exchange
         next_exchange.prev_bloc = self
 
+    def absorb(self, bloc):
+        self.T = (self.T * self.cp * self.mass - bloc.T * bloc.cp * bloc.mass) / (bloc.cp * bloc.mass + self.cp * self.mass)
+        self.absorbed.append(bloc)
+
     @property
     def history(self):
         return self.__history
+
+    def mass(self, T=None):
+        if T is None:
+            T = self.T
+
+        res = self.__mass(T) if callable(self.__mass) else self.__mass
+        res += sum([a.mass(T) for a in self.absorbed])
+        return res
+
+    def x(self, T=None):
+        if T is None:
+            T = self.T
+
+        res = self.__x(T) if callable(self.__x) else self.__x
+        res += sum([a.x(T) for a in self.absorbed])
+        return res
+
+    def energy_production(self, T=None):
+        if T is None:
+            T = self.T
+
+        res = self.__energy_production(T) if callable(self.__energy_production) else self.__energy_production
+        res += sum([a.energy_production(T) for a in self.absorbed])
+        return res
+
+    def cp(self, T=None):
+        if T is None:
+            T = self.T
+
+        res = (self.__cp(T) if callable(self.__cp) else self.__cp) * self.__mass
+        res += sum([a.cp(T) * a.mass for a in self.absorbed])
+
+        res /= self.__mass + sum([a.cp * a.mass for a in self.absorbed])
+
+        return res
+
+    def thermal_conductivity(self, T=None):
+        if T is None:
+            T = self.T
+
+        res = self.__thermal_conductivity(T) if callable(self.__thermal_conductivity) else self.__thermal_conductivity
+        res += sum([a.thermal_conductivity(T) for a in self.absorbed])
+
+        res /= self.__mass + sum([a.cp * a.mass for a in self.absorbed])
+
+        return res
 
     def calc_next_step(self, dt):
         sigma = 5.70e-8  # sigma de la loi de stephan
         self.dT = 0
 
-        self.dT += self.energy_production
+        self.dT += self.energy_production()
 
         if self.prev_exchange is not None:
             assert self.prev_exchange.next_bloc == self
@@ -58,5 +110,5 @@ class Element(ElementMixin):
             if self.next_exchange.radiations:
                 self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4)
 
-        self.dT /= (self.cp * self.mass)
+        self.dT /= (self.cp() * self.mass())
         self.dT *= dt
