@@ -54,14 +54,14 @@ model = Model([
         S=100,  x=10, cp=1.0,
         melting_temperature=temperature_fusion_beton,
         latent_melting_heat=chaleur_latente_beton,
-        thermal_conductivity=0.01,
-        number_of_slices=10
+        thermal_conductivity=100000,
+        number_of_slices=2
     ),
-    Exchange(h=1000, radiations=False),
+    Exchange(h=100000, radiations=False),
     ImmutableElement(temperature_intiale_beton + 200)  # béton limite
 ])
 
-time = model.run(timestep=1e0, time=3600)
+time = model.run(timestep=1e0, time=20)
 
 ####
 #plt.imshow(model.layers[1].history["T"][:, 0::1])

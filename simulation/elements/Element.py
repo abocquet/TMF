@@ -42,20 +42,14 @@ class Element(ElementMixin):
     def history(self):
         return self.__history
 
-    def mass(self, T=None):
-        if T is None:
-            T = self.T
-
-        res = self.__mass(T) if callable(self.__mass) else self.__mass
-        res += sum([a.mass(T) for a in self.absorbed])
+    def mass(self):
+        res = self.__mass
+        res += sum([a.__mass for a in self.absorbed])
         return res
 
-    def x(self, T=None):
-        if T is None:
-            T = self.T
-
-        res = self.__x(T) if callable(self.__x) else self.__x
-        res += sum([a.x(T) for a in self.absorbed])
+    def x(self):
+        res = self.__x
+        res += sum([a.x() for a in self.absorbed])
         return res
 
     def energy_production(self, T=None):
@@ -71,9 +65,9 @@ class Element(ElementMixin):
             T = self.T
 
         res = (self.__cp(T) if callable(self.__cp) else self.__cp) * self.__mass
-        res += sum([a.cp(T) * a.mass for a in self.absorbed])
+        res += sum([a.cp(T) * a.mass() for a in self.absorbed])
 
-        res /= self.__mass + sum([a.cp * a.mass for a in self.absorbed])
+        res /= self.__mass + sum([a.mass() for a in self.absorbed])
 
         return res
 
@@ -82,9 +76,9 @@ class Element(ElementMixin):
             T = self.T
 
         res = self.__thermal_conductivity(T) if callable(self.__thermal_conductivity) else self.__thermal_conductivity
-        res += sum([a.thermal_conductivity(T) for a in self.absorbed])
+        res += sum([a.thermal_conductivity(T) * a.mass() for a in self.absorbed])
 
-        res /= self.__mass + sum([a.cp * a.mass for a in self.absorbed])
+        res /= self.__mass + sum([a.mass() for a in self.absorbed])
 
         return res
 
