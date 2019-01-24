@@ -45,6 +45,7 @@ class MeltSlicedElement(SlicedElement):
                             absorber.mass + molting_slice.mass)
                 absorber.mass += molting_slice.mass
 
+
                 self.number_of_molten_slices += 1
 
                 if self.number_of_molten_slices == len(self.slices):
