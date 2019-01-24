@@ -32,7 +32,7 @@ class MeltSlicedElement(SlicedElement):
 
             molting_slice = self.slices[self.number_of_molten_slices]
 
-            self.fusion_energy_acc += (self.slices[self.number_of_molten_slices].T - self.melting_temperature) * self.slices[0].mass * self.slices[0].cp
+            self.fusion_energy_acc += (self.slices[self.number_of_molten_slices].T - self.melting_temperature) * self.slices[0].mass * self.slices[0].cp * dt
             molting_slice.T = self.melting_temperature
 
             if self.fusion_energy_acc >= latent_fusion_energy:
@@ -63,10 +63,7 @@ class MeltSlicedElement(SlicedElement):
             slice.calc_next_step(dt)
 
     def go_next_state(self):
-        i = 0
         for slice in self.slices:
-            print("{} {}".format(i, slice.dT))
-
             slice.go_next_state()
 
     @property
