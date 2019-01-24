@@ -6,7 +6,9 @@ class SolidExchange:
         """
 
         self.radiations = radiations
-
+        # self.convection = convection
+        # self.h1 = h1
+        # self.h2 = h2
         self.prev_bloc = prev_bloc
         self.next_bloc = next_bloc
 
@@ -18,4 +20,11 @@ class SolidExchange:
         e1, lambda_1, S1 = self.prev_bloc.x, self.prev_bloc.thermal_conductivity, self.prev_bloc.S
         e2, lambda_2, S2 = self.next_bloc.x, self.next_bloc.thermal_conductivity, self.next_bloc.S
 
+
+        # if self.convection :
+        #     return 1 / ((e1 / (2 * lambda_1 * S1)) + (e2 / (2 * lambda_2 * S2))) + self.h1*S1 + self.h2*S2
+
         return 1 / ((e1 / (2 * lambda_1 * S1)) + (e2 / (2 * lambda_2 * S2)))
+
+
+
