@@ -54,22 +54,21 @@ masse_volumique_air = 1.2  # kg/m^3
 
 
 model = Model([
-    Element(temperature_initiale_air, masse_volumique_air, 6, capacite_thermique_air, surface_beton, conductivite_air,
-            0),
+    Element(temperature_initiale_air, masse_volumique_air, 6, capacite_thermique_air, surface_beton, conductivite_air,0),
     Exchange(h=5, radiations=False),
     Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
             capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
-    SolidExchange(radiations=False),
-    MeltSlicedElement(temperature_intiale_beton, masse_volumique_beton, hauteur_beton_sacrificiel, surface_beton,
-                      cp_beton, conductivite_beton, 2, temperature_fusion_beton, chaleur_latente_beton, 0, False),
-    SolidExchange(radiations=False),
-    Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_corium,
-            surface_acier, conductivite_thermique_acier, 0)
+    # SolidExchange(radiations=False),
+    # MeltSlicedElement(temperature_intiale_beton, masse_volumique_beton, hauteur_beton_sacrificiel, surface_beton,
+    #                   cp_beton, conductivite_beton, 10, temperature_fusion_beton, chaleur_latente_beton, 0, False),
+    # SolidExchange(radiations=False),
+    # Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_corium,
+    #         surface_acier, conductivite_thermique_acier, 0)
 
 ])
 
-time = model.run(timestep=1e0, time=3600 * 10)
-plt.plot(time, model.layers[2].history["T"][0])
+time = model.run(timestep=1e0, time=1000)
+plt.plot(time, model.layers[-1].history["T"])
 plt.show()
 
 print(np.argmax(np.array(model.layers[-1].history["T"]) > (1500 + 273)))
