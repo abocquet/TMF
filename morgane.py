@@ -47,33 +47,34 @@ surface_acier = 2.4
 epaisseur_acier = 0.04
 
 temperature_initiale_corium = 2273
-production_chaleur_corium = 35*1000000
-
+production_chaleur_corium = 35 * 1000000
 
 # -------------  Simulation
 
-
 model = Model([
-     Element(temperature_initiale_air, masse_volumique_air, 3, capacite_thermique_air, surface_beton, conductivite_air,0),
-     Exchange(h=5*99,radiations=False),
-     Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
+    Element(temperature_initiale_air, masse_volumique_air, 3, capacite_thermique_air, surface_beton, conductivite_air),
+    Exchange(h=5 * 99),
+    Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
             capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
-     SolidExchange(radiations=False),
-     #Element(temperature_intiale_beton, masse_volumique_corium, hauteur_beton_sacrificiel, capacite_thermique_beton, surface_beton, conductivite_beton,0),
-     MeltSlicedElement(temperature_intiale_beton, masse_beton/ (hauteur_beton_sacrificiel*surface_beton), hauteur_beton_sacrificiel, surface_beton,
-                       capacite_thermique_beton, conductivite_beton, 10, temperature_fusion_beton, chaleur_latente_beton, 0),
-     SolidExchange(radiations=False),
-     Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_corium,
-           surface_acier, conductivite_thermique_acier, 0)
+    SolidExchange(),
+    # Element(temperature_intiale_beton, masse_volumique_corium, hauteur_beton_sacrificiel, capacite_thermique_beton, surface_beton, conductivite_beton,0),
+    MeltSlicedElement(temperature_intiale_beton, masse_beton / (hauteur_beton_sacrificiel * surface_beton),
+                      hauteur_beton_sacrificiel, surface_beton,
+                      capacite_thermique_beton, conductivite_beton, 10, temperature_fusion_beton, chaleur_latente_beton,
+                      0),
+    SolidExchange(),
+    Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_corium,
+            surface_acier, conductivite_thermique_acier, 0)
 
 ])
 
-print(masse_beton / (hauteur_beton_sacrificiel*surface_beton))
-
-time = model.run(timestep=1e0, time=300000)
-plt.plot(time, model.layers[0].history["T"])
+time = model.run(timestep=1e0, time=150_000)
+plt.plot(time, model.layers[0].history["T"], label="Corium")
 plt.plot(time, model.layers[2].history["T"][0])
-plt.plot(time, model.layers[3].history["T"])
+plt.plot(time, model.layers[2].history["T"][1])
+plt.plot(time, model.layers[2].history["T"][2])
+plt.plot(time, model.layers[3].history["T"], label="Plaque de métal")
+plt.legend()
 plt.show()
 
 print(np.argmax(np.array(model.layers[-1].history["T"]) > (1500 + 273)))
