@@ -8,9 +8,8 @@ from simulation.elements.SlicedElement import SlicedElement
 class MeltSlicedElement(SlicedElement):
 
     def __init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, melting_temperature,
-                 latent_melting_heat, energy_production=0, radiations_inside=False):
-        SlicedElement.__init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, energy_production,
-                               radiations_inside)
+                 latent_melting_heat, energy_production=0):
+        SlicedElement.__init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, energy_production)
 
         self.melting_temperature = melting_temperature
         self.latent_metling_heat = latent_melting_heat

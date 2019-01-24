@@ -40,19 +40,24 @@ class Element(ElementMixin):
         sigma = 5.70e-8  # sigma de la loi de stephan
         self.dT = 0
 
-        self.dT += self.energy_production * dt
+        self.dT += self.energy_production
 
         if self.prev_exchange is not None:
             assert self.prev_exchange.next_bloc == self
+
             self.dT += self.prev_exchange.h  * (self.prev_exchange.prev_bloc.T - self.T) * dt  # conductivity
 
+            self.dT += self.prev_exchange.h * self.S * (self.prev_exchange.prev_bloc.T - self.T)  # conductivity
+
             if self.prev_exchange.radiations:
-                self.dT += sigma * (self.prev_exchange.prev_bloc.T ** 4 - self.T ** 4) * dt  # radiations
+                self.dT += sigma * (self.prev_exchange.prev_bloc.T ** 4 - self.T ** 4)  # radiations
 
         if self.next_exchange is not None:
             assert self.next_exchange.prev_bloc == self
             self.dT += self.next_exchange.h * (self.next_exchange.next_bloc.T - self.T) * dt
+            self.dT += self.next_exchange.h * self.S * (self.next_exchange.next_bloc.T - self.T)
             if self.next_exchange.radiations:
-                self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4) * dt
+                self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4)
 
         self.dT /= (self.cp * self.mass)
+        self.dT *= dt
