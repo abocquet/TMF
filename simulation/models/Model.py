@@ -32,6 +32,7 @@ class Model:
             for layer in self.layers:
                 layer.go_next_state()
 
+
         return np.linspace(0, time, steps)
 
     def summary(self):

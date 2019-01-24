@@ -45,21 +45,20 @@ conductivite_corium = 3  # absurde !!!
 
 
 model = Model([
-    Element(temperature_initiale_air, densite_air, masse_aire / densite_air / surface, cp_air, surface, conductivite_air),  # air
-    Exchange(h=coefficient_echange_air_corium, radiations=False),
-    Element(temperature_initiale_corium, densite_corium, x_corium, cp_corium, surface, conductivite_corium, production_chaleur_corium),  # corium
-    SolidExchange(radiations=False),
+    #Element(temperature_initiale_air, densite_air, masse_aire / densite_air / surface, cp_air, surface, conductivite_air),  # air
+    #Exchange(h=coefficient_echange_air_corium, radiations=False),
+    #Element(temperature_initiale_corium, densite_corium, x_corium, cp_corium, surface, conductivite_corium, production_chaleur_corium),  # corium
+    #SolidExchange(radiations=False),
     MeltSlicedElement(  # béton sacrificiel
         temperature_intiale_beton, masse_volumique_beton,
         S=100,  x=10, cp=1.0,
         melting_temperature=temperature_fusion_beton,
         latent_melting_heat=chaleur_latente_beton,
         thermal_conductivity=0.01,
-        number_of_slices=200,
-        radiations_inside=False
+        number_of_slices=10
     ),
-    Exchange(h=conductivite_beton, radiations=False),
-    ImmutableElement(temperature_intiale_beton)  # béton limite
+    Exchange(h=1000, radiations=False),
+    ImmutableElement(temperature_intiale_beton + 200)  # béton limite
 ])
 
 time = model.run(timestep=1e0, time=3600)
@@ -67,5 +66,7 @@ time = model.run(timestep=1e0, time=3600)
 ####
 #plt.imshow(model.layers[1].history["T"][:, 0::1])
 #plt.show()
-plt.plot(time, model.layers[0].history["T"])
+plt.plot(time, model.layers[0].slices[-1].history["T"])
+plt.plot(time, model.layers[0].slices[-2].history["T"])
+plt.plot(time, [model.layers[1].T for _ in time])
 plt.show()

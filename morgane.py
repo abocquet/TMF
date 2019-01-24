@@ -66,8 +66,6 @@ model = Model([
 
 ])
 
-
-
 time = model.run(timestep=1e0, time=150_000)
 
 plt.plot(time, model.layers[1].history["T"], label="Corium")
