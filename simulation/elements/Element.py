@@ -12,6 +12,7 @@ class Element(ElementMixin):
         self.__thermal_conductivity = thermal_conductivity
 
         self.absorbed = []
+        self.absorbed_by = None
 
         self.prev_exchange = None
         self.next_exchange = None
@@ -20,7 +21,7 @@ class Element(ElementMixin):
         self.__history = {"T": [], "x": [], "cp": [], "mass": [], "thermal_conductivity": []}
 
     def go_next_state(self):
-        self.__history["T"].append(self.T)
+        self.__history["T"].append(self.T if self.absorbed_by is None else self.absorbed_by.T)
         self.__history["x"].append(self.x())
         self.__history["cp"].append(self.cp())
         self.__history["mass"].append(self.mass())
@@ -38,6 +39,7 @@ class Element(ElementMixin):
     def absorb(self, bloc):
         self.T = (self.T * self.cp() * self.mass() + bloc.T * bloc.cp() * bloc.mass()) / (bloc.cp() * bloc.mass() + self.cp() * self.mass())
         self.absorbed.append(bloc)
+        bloc.absorbed_by = self
 
     @property
     def history(self):
@@ -48,6 +50,7 @@ class Element(ElementMixin):
 
     def x(self):
         return self.__x + sum([a.x() for a in self.absorbed])
+
 
     def energy_production(self, T=None):
         if T is None:
