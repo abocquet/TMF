@@ -53,7 +53,7 @@ production_chaleur_corium = 35 * 1000000
 
 model = Model([
     Element(temperature_initiale_air, masse_volumique_air, 3, capacite_thermique_air, surface_beton, conductivite_air),
-    Exchange(h=5 * 99),
+    Exchange(h=5 * 99, radiations=False, prev_temp_radiation=1450 + 273),
     Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
             capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
      SolidExchange(radiations=False),
@@ -66,7 +66,7 @@ model = Model([
 
 ])
 
-time = model.run(timestep=1e0, time=150_000)
+time = model.run(timestep=1, time=3600 * 100, early_interrupt=lambda s: s.layers[-1].T > 2000)
 
 plt.plot(time, model.layers[1].history["T"], label="Corium")
 plt.plot(time, model.layers[2].history["T"][0])
@@ -76,4 +76,7 @@ plt.plot(time, model.layers[3].history["T"], label="Plaque de métal")
 plt.legend()
 plt.show()
 
-print(np.argmax(np.array(model.layers[-1].history["T"]) > (1500 + 273)))
+tf = np.argmax(np.array(model.layers[-1].history["T"]) > 1500)
+tf_h, tf_m, tf_s = int(tf / 3600), int((tf % 3600) / 60), int(tf % 60)
+print("Temps final avant fonte {}h {}m {}s".format(tf_h, tf_m, tf_s))
+print(tf)

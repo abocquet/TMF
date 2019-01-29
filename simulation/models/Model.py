@@ -21,9 +21,9 @@ class Model:
             layers[i-1].set_next_exchange(exchange)
             layers[i+1].set_prev_exchange(exchange)
 
-    def run(self, timestep=1e-3, time=30):
+    def run(self, timestep=1e-3, time=30, early_interrupt=None):
 
-        steps = int(time / timestep)
+        steps, acheived_steps = int(time / timestep), 1
 
         for _ in progressbar.progressbar(range(steps)):
             for layer in self.layers:
@@ -32,8 +32,13 @@ class Model:
             for layer in self.layers:
                 layer.go_next_state()
 
+            if early_interrupt(self):
+                break
 
-        return np.linspace(0, time, steps)
+            acheived_steps += 1
+
+
+        return np.linspace(0, time, acheived_steps)
 
     def summary(self):
         layer = self.layers[0]
