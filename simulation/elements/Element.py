@@ -35,7 +35,7 @@ class Element(ElementMixin):
         next_exchange.prev_bloc = self
 
     def absorb(self, bloc):
-        self.T = (self.T * self.cp * self.mass - bloc.T * bloc.cp * bloc.mass) / (bloc.cp * bloc.mass + self.cp * self.mass)
+        self.T = (self.T * self.cp() * self.mass() - bloc.T * bloc.cp() * bloc.mass()) / (bloc.cp() * bloc.mass() + self.cp() * self.mass())
         self.absorbed.append(bloc)
 
     @property
@@ -43,14 +43,10 @@ class Element(ElementMixin):
         return self.__history
 
     def mass(self):
-        res = self.__mass
-        res += sum([a.__mass for a in self.absorbed])
-        return res
+        return self.__mass +  sum([a.__mass for a in self.absorbed])
 
     def x(self):
-        res = self.__x
-        res += sum([a.x() for a in self.absorbed])
-        return res
+        return self.__x + sum([a.x() for a in self.absorbed])
 
     def energy_production(self, T=None):
         if T is None:
@@ -58,13 +54,14 @@ class Element(ElementMixin):
 
         res = self.__energy_production(T) if callable(self.__energy_production) else self.__energy_production
         res += sum([a.energy_production(T) for a in self.absorbed])
+
         return res
 
     def cp(self, T=None):
         if T is None:
             T = self.T
 
-        res = (self.__cp(T) if callable(self.__cp) else self.__cp) * self.__mass
+        res =  self.__mass * (self.__cp(T) if callable(self.__cp) else self.__cp)
         res += sum([a.cp(T) * a.mass() for a in self.absorbed])
 
         res /= self.__mass + sum([a.mass() for a in self.absorbed])
@@ -75,7 +72,7 @@ class Element(ElementMixin):
         if T is None:
             T = self.T
 
-        res = self.__thermal_conductivity(T) if callable(self.__thermal_conductivity) else self.__thermal_conductivity
+        res = self.__mass * (self.__thermal_conductivity(T) if callable(self.__thermal_conductivity) else self.__thermal_conductivity)
         res += sum([a.thermal_conductivity(T) * a.mass() for a in self.absorbed])
 
         res /= self.__mass + sum([a.mass() for a in self.absorbed])
@@ -91,18 +88,23 @@ class Element(ElementMixin):
         if self.prev_exchange is not None:
             assert self.prev_exchange.next_bloc == self
 
-            self.dT += self.prev_exchange.h * (self.prev_exchange.prev_bloc.T - self.T) * dt  # conductivity
+            self.dT += self.prev_exchange.h * (self.prev_exchange.prev_bloc.T - self.T)  # conductivity
 
             if self.prev_exchange.radiations:
                 self.dT += sigma * (self.prev_exchange.prev_bloc.T ** 4 - self.T ** 4)  # radiations
+            elif self.prev_exchange.prev_temp_radiation:
+                self.dT += sigma * (self.prev_exchange.prev_temp_radiation ** 4 - self.T ** 4)  # radiations
 
         if self.next_exchange is not None:
             assert self.next_exchange.prev_bloc == self
 
-            self.dT += self.next_exchange.h * (self.next_exchange.next_bloc.T - self.T) * dt
+            self.dT += self.next_exchange.h * (self.next_exchange.next_bloc.T - self.T)
 
             if self.next_exchange.radiations:
                 self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4)
+            elif self.next_exchange.next_temp_radiation:
+                self.dT += sigma * (self.next_exchange.next_temp_radiation ** 4 - self.T ** 4)  # radiations
 
-        self.dT /= (self.cp() * self.mass())
+
         self.dT *= dt
+        self.dT /= (self.cp() * self.mass())
