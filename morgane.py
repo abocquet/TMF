@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 from simulation.elements.Element import Element
+from simulation.elements.ImmutableElement import ImmutableElement
 from simulation.elements.MeltSlicedElement import MeltSlicedElement
 from simulation.exchanges.Exchange import Exchange
 from simulation.exchanges.SolidExchange import SolidExchange
@@ -35,8 +36,8 @@ coefficient_echange_air_corium = 5  # W/(m2.K)
 masse_volumique_corium = 4600  # kg/m^3
 volume_corium = 59  # m^3
 masse_corium = masse_volumique_corium * volume_corium
-capacite_thermique_corium = 1500
-conductivite_corium = 3
+capacite_thermique_corium = 800
+conductivite_corium = 4.90
 
 # Acier
 temperature_initiale_acier = 343
@@ -47,27 +48,31 @@ surface_acier = 2.4
 epaisseur_acier = 0.04
 
 temperature_initiale_corium = 2273
-production_chaleur_corium = 35 * 1000000
+production_chaleur_corium = 35e6
 
 # -------------  Simulation
 
 model = Model([
     Element(temperature_initiale_air, masse_volumique_air, 3, capacite_thermique_air, surface_beton, conductivite_air),
-    Exchange(h=5 * 99, radiations=False, prev_temp_radiation=1450 + 273),
+    #ImmutableElement(temperature_initiale_air),
+    #Exchange(h=5 * 99, radiations=False, prev_temp_radiation=1450 + 273),
+    Exchange(h=5 * 99, radiations=False),
     Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
             capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
      SolidExchange(radiations=False),
      #Element(temperature_intiale_beton, masse_volumique_corium, hauteur_beton_sacrificiel, capacite_thermique_beton, surface_beton, conductivite_beton,0),
      MeltSlicedElement(temperature_intiale_beton, masse_beton/ (hauteur_beton_sacrificiel*surface_beton), hauteur_beton_sacrificiel, surface_beton,
-                       capacite_thermique_beton, conductivite_beton, 5, temperature_fusion_beton, chaleur_latente_beton, 0),
+                       capacite_thermique_beton, conductivite_beton, 50, temperature_fusion_beton, chaleur_latente_beton, 0),
      SolidExchange(radiations=False),
      Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_acier,
            surface_acier, conductivite_thermique_acier, 0)
 
 ])
 
-time = model.run(timestep=1, time=3600 * 100, early_interrupt=lambda s: s.layers[-1].T > 2000)
+timestep = 3e1
+time = model.run(timestep=timestep, time=3600 * 100, early_interrupt=lambda s: s.layers[-1].T > 2000)
 
+plt.plot(time, model.layers[0].history["T"], label="Air")
 plt.plot(time, model.layers[1].history["T"], label="Corium")
 plt.plot(time, model.layers[2].history["T"][0])
 plt.plot(time, model.layers[2].history["T"][1])
@@ -75,8 +80,10 @@ plt.plot(time, model.layers[2].history["T"][2])
 plt.plot(time, model.layers[3].history["T"], label="Plaque de métal")
 plt.legend()
 plt.show()
+plt.plot(time, model.layers[1].history["thermal_conductivity"], label="Corium")
+plt.show()
 
-tf = np.argmax(np.array(model.layers[-1].history["T"]) > 1500)
+tf = np.argmax(np.array(model.layers[-1].history["T"]) > 1500) * timestep
 tf_h, tf_m, tf_s = int(tf / 3600), int((tf % 3600) / 60), int(tf % 60)
 print("Temps final avant fonte {}h {}m {}s".format(tf_h, tf_m, tf_s))
 print(tf)

@@ -17,13 +17,14 @@ class Element(ElementMixin):
         self.next_exchange = None
 
         self.dT = 0.0
-        self.__history = {"T": [], "x": [], "cp": [], "mass": []}
+        self.__history = {"T": [], "x": [], "cp": [], "mass": [], "thermal_conductivity": []}
 
     def go_next_state(self):
         self.__history["T"].append(self.T)
-        self.__history["x"].append(self.x)
-        self.__history["cp"].append(self.cp)
-        self.__history["mass"].append(self.mass)
+        self.__history["x"].append(self.x())
+        self.__history["cp"].append(self.cp())
+        self.__history["mass"].append(self.mass())
+        self.__history["thermal_conductivity"].append(self.thermal_conductivity())
         self.T += self.dT
 
     def set_prev_exchange(self, prev_exchange):
@@ -35,7 +36,7 @@ class Element(ElementMixin):
         next_exchange.prev_bloc = self
 
     def absorb(self, bloc):
-        self.T = (self.T * self.cp() * self.mass() - bloc.T * bloc.cp() * bloc.mass()) / (bloc.cp() * bloc.mass() + self.cp() * self.mass())
+        self.T = (self.T * self.cp() * self.mass() + bloc.T * bloc.cp() * bloc.mass()) / (bloc.cp() * bloc.mass() + self.cp() * self.mass())
         self.absorbed.append(bloc)
 
     @property
@@ -81,7 +82,7 @@ class Element(ElementMixin):
 
     def calc_next_step(self, dt):
         sigma = 5.70e-8  # sigma de la loi de stephan
-        self.dT = 0
+        self.dT = 0.0
 
         self.dT += self.energy_production()
 
@@ -93,7 +94,7 @@ class Element(ElementMixin):
             if self.prev_exchange.radiations:
                 self.dT += sigma * (self.prev_exchange.prev_bloc.T ** 4 - self.T ** 4)  # radiations
             elif self.prev_exchange.prev_temp_radiation:
-                self.dT += sigma * (self.prev_exchange.prev_temp_radiation ** 4 - self.T ** 4)  # radiations
+                self.dT += sigma * (self.prev_exchange.prev_temp_radiation ** 4 - self.T ** 4)
 
         if self.next_exchange is not None:
             assert self.next_exchange.prev_bloc == self
@@ -103,8 +104,7 @@ class Element(ElementMixin):
             if self.next_exchange.radiations:
                 self.dT += sigma * (self.next_exchange.next_bloc.T ** 4 - self.T ** 4)
             elif self.next_exchange.next_temp_radiation:
-                self.dT += sigma * (self.next_exchange.next_temp_radiation ** 4 - self.T ** 4)  # radiations
-
+                self.dT += sigma * (self.next_exchange.next_temp_radiation ** 4 - self.T ** 4)
 
         self.dT *= dt
         self.dT /= (self.cp() * self.mass())
