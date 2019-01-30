@@ -17,7 +17,7 @@ from simulation.models.Model import Model
 ###########################
 
 
-nombre_couches_beton = 5
+nombre_couches_beton = 50
 timestep = 1e1 # 1/s
 simulation_time = 3600 * 100 # s
 
@@ -99,8 +99,7 @@ time = model.run(
 
 T1 = np.argmax(np.array(model.layers[-1].history["T"]) > temperature_fusion_acier) * timestep
 T1_h, T1_m, T1_s = int(T1 / 3600), int((T1 % 3600) / 60), int(T1 % 60)
-print("\nTemps final avant fonte {}h {}m {}s".format(T1_h, T1_m, T1_s))
-print(T1)
+print("\nTemps final avant fonte {}h {}m {}s (={}s)".format(T1_h, T1_m, T1_s, T1))
 
 plt.plot(time, model.layers[0].history["T"], label="Air")
 plt.plot(time, model.layers[1].history["T"], label="Corium")
@@ -144,9 +143,9 @@ plt.show()
 ######################################################
 
 surface_zone_etalement = 170
-profondeur_cables = 1 # m
+profondeur_cables = 0.1 # m
 hauteur_beton_sacrificiel_zone_etalement = profondeur_cables * 2
-nombre_couches_beton_zone_etalement = 20
+nombre_couches_beton_zone_etalement = 10
 hauteur_air_zone_etalement = 10
 
 corium_element = model.layers[1]
@@ -155,7 +154,6 @@ masse_corium_zone_etalement = masse_corium + masse_beton + masse_acier
 volume_corium_zone_etalement = volume_corium + volume_beton + volume_acier
 masse_volumique_corium_zone_etalement = masse_corium_zone_etalement / volume_corium_zone_etalement
 hauteur_corium_zone_etalement = volume_corium_zone_etalement / surface_zone_etalement
-
 
 ######################################################
 # Simulation fonte dans la zone d'étalement
@@ -179,23 +177,21 @@ model = Model([
 time = model.run(
     timestep=timestep, time=simulation_time,
     time_offset=T0 + T1,
-    early_interrupt=lambda s: s.layers[-1].slices[nombre_couches_beton_zone_etalement // 2 + 1].T >= temperature_fusion_beton - 5
+    early_interrupt=lambda s: s.layers[2].slices[int(nombre_couches_beton_zone_etalement * (0.5 + 1/3))].T >= temperature_fusion_beton - 1
 )
 
 # Résultats
 
-
-tf = np.argmax(np.array(model.layers[-1].history["T"]) > temperature_fusion_acier) * timestep
-tf_h, tf_m, tf_s = int(tf / 3600), int((tf % 3600) / 60), int(tf % 60)
-print("\nTemps final avant fonte {}h {}m {}s".format(tf_h, tf_m, tf_s))
-print(tf)
+T2 = np.argmax(np.array(model.layers[2].slices[nombre_couches_beton_zone_etalement // 2 + 1].history["T"]) >= temperature_fusion_beton - 1) * timestep
+T2_h, T2_m, T2_s = int(T2 / 3600), int((T2 % 3600) / 60), int(T2 % 60)
+print("\nTemps final avant fonte {}h {}m {}s (={}s)".format(T2_h, T2_m, T2_s, T2))
 
 plt.plot(time, model.layers[0].history["T"], label="Air")
 plt.plot(time, model.layers[1].history["T"], label="Corium")
 
 i0 = 3
 for i in range(i0):
-    h = model.layers[2].history["T"][int(i / i0 * nombre_couches_beton)]
+    h = model.layers[2].history["T"][int(i / i0 * nombre_couches_beton_zone_etalement)]
     t, h = zip(*[(ti, hi) for ti, hi in zip(time, h) if hi <= temperature_fusion_beton + 10])
 
     plt.plot(t, h, "g")
@@ -218,7 +214,7 @@ plt.imshow(
         model.layers[2].history["T"],
     )),
     extent=[
-        0, tf / 3600,
+        0, T2 / 3600,
         0, hauteur_beton_sacrificiel_zone_etalement + hauteur_corium_zone_etalement + hauteur_air_zone_etalement
     ], aspect='auto'
 )
