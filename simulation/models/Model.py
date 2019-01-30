@@ -21,13 +21,13 @@ class Model:
             layers[i-1].set_next_exchange(exchange)
             layers[i+1].set_prev_exchange(exchange)
 
-    def run(self, timestep=1e-3, time=30, early_interrupt=None):
+    def run(self, timestep=1e-3, time=30, early_interrupt=None, time_offset=0.0):
 
         steps, acheived_steps = int(time / timestep), 1
 
         for _ in progressbar.progressbar(range(steps)):
             for layer in self.layers:
-                layer.calc_next_step(timestep)
+                layer.calc_next_step(timestep, acheived_steps / steps * time + time_offset)
 
             for layer in self.layers:
                 layer.go_next_state()

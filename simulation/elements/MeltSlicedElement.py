@@ -22,7 +22,7 @@ class MeltSlicedElement(SlicedElement):
     def prev_exchange(self):
         return self.slices[self.number_of_molten_slices].prev_exchange
 
-    def calc_next_step(self, dt):
+    def calc_next_step(self, dt, time):
         if self.number_of_molten_slices == len(self.slices):
             return
 
@@ -65,7 +65,7 @@ class MeltSlicedElement(SlicedElement):
                 self.fusion_energy_acc = 0.0
 
         for slice in self.slices:
-            slice.calc_next_step(dt)
+            slice.calc_next_step(dt, time)
 
     def go_next_state(self):
         for slice in self.slices:

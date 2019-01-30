@@ -18,7 +18,10 @@ class Element(ElementMixin):
         self.next_exchange = None
 
         self.dT = 0.0
-        self.__history = {"T": [], "x": [], "cp": [], "mass": [], "thermal_conductivity": []}
+        self.__history = {
+            "T": [], "x": [], "cp": [], "mass": [],
+            "thermal_conductivity": [], "energy_production": []
+        }
 
     def go_next_state(self):
         self.__history["T"].append(self.T if self.absorbed_by is None else self.absorbed_by.T)
@@ -52,12 +55,12 @@ class Element(ElementMixin):
         return self.__x + sum([a.x() for a in self.absorbed])
 
 
-    def energy_production(self, T=None):
+    def energy_production(self, time, T=None):
         if T is None:
             T = self.T
 
-        res = self.__energy_production(T) if callable(self.__energy_production) else self.__energy_production
-        res += sum([a.energy_production(T) for a in self.absorbed])
+        res = self.__energy_production(time, T) if callable(self.__energy_production) else self.__energy_production
+        res += sum([a.energy_production(time, T) for a in self.absorbed])
 
         return res
 
@@ -83,11 +86,13 @@ class Element(ElementMixin):
 
         return res
 
-    def calc_next_step(self, dt):
+    def calc_next_step(self, dt, time):
+        self.__history["energy_production"].append(self.energy_production(time))
+
         sigma = 5.70e-8  # sigma de la loi de stephan
         self.dT = 0.0
 
-        self.dT += self.energy_production()
+        self.dT += self.energy_production(time)
 
         if self.prev_exchange is not None:
             assert self.prev_exchange.next_bloc == self

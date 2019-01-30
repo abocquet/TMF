@@ -1,3 +1,5 @@
+### Imports
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -7,10 +9,10 @@ from simulation.exchanges.Exchange import Exchange
 from simulation.exchanges.SolidExchange import SolidExchange
 from simulation.models.Model import Model
 
-# ------------- Définition des grandeurs
+### ------------- Définition des grandeurs
 nombre_couches_beton = 50
-pas_de_temps = 30  # s
-temps_total = 3600  # s
+timestep = 1e1 # 1/s
+simulation_time = 3600 * 100 # s
 
 # Béton
 hauteur_beton_sacrificiel = 0.5  # metres
@@ -36,21 +38,25 @@ masse_volumique_corium = 4600  # kg/m^3
 volume_corium = 59  # m^3
 masse_corium = 271e3
 capacite_thermique_corium = lambda t: 1000 if t <= 1700 else (1700 if t <= 2200 else 800)
-conductivite_corium = lambda t: 0.001 * t + 1 if t <= 1600 else (0.001 * t + 1 if t <= 2000 else 0.0067 * t - 10.333)
+#conductivite_corium = lambda t: 0.001 * t + 1 if t <= 1600 else (0.001 * t + 1 if t <= 2000 else 0.0067 * t - 10.333)
 conductivite_corium = lambda t: 0.000875 * (t - 1200) + 2.3 if t <= 2000 else 0.0066666667*(t-2000)+3
 hauteur_corium = masse_corium / masse_volumique_corium / surface_beton
+
+temperature_initiale_corium = 2273
+production_chaleur_corium = 35e6
+
+T0 = 365  # jours
+production_chaleur_corium = lambda time, T=None: 6.48e-3 * 4500e6 * ((time / (3600 * 24)) ** -0.2 - ((time / (3600 * 24)) + T0) ** -0.2)
 
 
 # Acier
 temperature_initiale_acier = 343
+temperature_fusion_acier = 1500
 masse_volumique_acier = 8000
 conductivite_thermique_acier = 50
 capacite_thermique_acier = 470
 surface_acier = 2.4
 epaisseur_acier = 0.04
-
-temperature_initiale_corium = 2273
-production_chaleur_corium = 35e6
 
 # -------------  Simulation
 
@@ -73,12 +79,18 @@ model = Model([
 
 ])
 
-timestep = 1e1
-time = model.run(timestep=timestep, time=3600 * 100, early_interrupt=lambda s: s.layers[-1].T > 2000)
+time = model.run(
+    timestep=timestep, time=simulation_time,
+    time_offset=T0,
+    early_interrupt=lambda s: s.layers[-1].T > temperature_fusion_acier + 150
+)
 
-tf = np.argmax(np.array(model.layers[-1].history["T"]) > 1500) * timestep
+### Print results
+
+tf = np.argmax(np.array(model.layers[-1].history["T"]) > temperature_fusion_acier) * timestep
 tf_h, tf_m, tf_s = int(tf / 3600), int((tf % 3600) / 60), int(tf % 60)
 print("\nTemps final avant fonte {}h {}m {}s".format(tf_h, tf_m, tf_s))
+print(tf)
 
 plt.plot(time, model.layers[0].history["T"], label="Air")
 plt.plot(time, model.layers[1].history["T"], label="Corium")
