@@ -48,12 +48,17 @@ class Element(ElementMixin):
     def history(self):
         return self.__history
 
+    def density(self):
+        return self.mass() / self.volume()
+
+    def volume(self):
+        return self.__x * self.S + sum([a.volume() for a in self.absorbed])
+
     def mass(self):
-        return self.__mass +  sum([a.__mass for a in self.absorbed])
+        return self.__mass + sum([a.__mass for a in self.absorbed])
 
     def x(self):
         return self.__x + sum([a.x() for a in self.absorbed])
-
 
     def energy_production(self, time, T=None):
         if T is None:
@@ -116,3 +121,4 @@ class Element(ElementMixin):
 
         self.dT *= dt
         self.dT /= (self.cp() * self.mass())
+

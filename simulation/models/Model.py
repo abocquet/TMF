@@ -37,6 +37,7 @@ class Model:
 
             acheived_steps += 1
 
+
         return np.linspace(0, time, acheived_steps)
 
     def summary(self):
