@@ -17,9 +17,9 @@ from simulation.models.Model import Model
 ###########################
 
 
-nombre_couches_beton = 30
-timestep = 30e0  # 1/s
-simulation_time = 3600 * 100  # s
+nombre_couches_beton = 5
+timestep = 3e1  # 1/s
+simulation_time = 3600 * 20 # s
 
 # Béton
 hauteur_beton_sacrificiel = 0.5  # metres
@@ -47,7 +47,7 @@ masse_volumique_corium = 4600  # kg/m^3
 volume_corium = 59  # m^3
 masse_corium = 271e3
 capacite_thermique_corium = lambda t: 1000 if t <= 1700 else (1700 if t <= 2200 else 800)
-# conductivite_corium = lambda t: 0.001 * t + 1 if t <= 1600 else (0.001 * t + 1 if t <= 2000 else 0.0067 * t - 10.333)
+#conductivite_corium = lambda t: 0.001 * t + 1 if t <= 1600 else (0.001 * t + 1 if t <= 2000 else 0.0067 * t - 10.333)
 conductivite_corium = lambda t: 0.000875 * (t - 1200) + 2.3 if t <= 2000 else 0.0066666667 * (t - 2000) + 3
 hauteur_corium = masse_corium / masse_volumique_corium / surface_beton
 
@@ -70,7 +70,7 @@ volume_acier = surface_acier * epaisseur_acier
 masse_acier = masse_volumique_acier * volume_acier
 
 ######################################################
-# Simulation fonte dans le silo
+# Simulation fonte dans la cuve de rétention
 ######################################################
 
 model = Model([
@@ -79,11 +79,11 @@ model = Model([
     Element(temperature_initiale_corium, masse_volumique_corium, volume_corium / surface_beton,
             capacite_thermique_corium, surface_beton, conductivite_corium, production_chaleur_corium),
     SolidExchange(radiations=False),
-    MeltSlicedElement(temperature_intiale_beton, masse_volumique_beton,
-                      hauteur_beton_sacrificiel, surface_beton,
-                      capacite_thermique_beton, conductivite_beton, nombre_couches_beton, temperature_fusion_beton,
-                      chaleur_latente_beton,
-                      0),
+    MeltSlicedElement(
+        temperature_intiale_beton, masse_volumique_beton,
+        hauteur_beton_sacrificiel, surface_beton,
+        capacite_thermique_beton, conductivite_beton, nombre_couches_beton,
+        temperature_fusion_beton, chaleur_latente_beton, 0),
     SolidExchange(radiations=False),
     Element(temperature_initiale_acier, masse_volumique_acier, epaisseur_acier, capacite_thermique_acier,
             surface_acier, conductivite_thermique_acier, 0)
@@ -97,11 +97,19 @@ time = model.run(
 
 # Résultats
 
-a = np.array(model.layers[-1].history["T"])
 T1 = np.argmax(np.array(model.layers[-1].history["T"]) > temperature_fusion_acier) * timestep
+T1 = len(model.layers[-1].history["T"]) * timestep
 T1_h, T1_m, T1_s = int(T1 / 3600), int((T1 % 3600) / 60), int(T1 % 60)
 print("\nTemps final avant fonte {}h {}m {}s (={}s)".format(T1_h, T1_m, T1_s, T1))
 print(T1)
+
+#plt.plot(time, model.layers[1].history["thermal_conductivity"], label="Lambda mélange corium béton")
+#plt.plot(time, np.vectorize(conductivite_corium)(model.layers[1].history["T"]), label="Lambda corium seul")
+#plt.title("Conductivité thermique du corium en fonction du temps")
+#plt.legend()
+#plt.show()
+
+#sys.exit()
 
 plt.plot(time, model.layers[0].history["T"], label="Air")
 plt.plot(time, model.layers[1].history["T"], label="Corium")
@@ -117,29 +125,33 @@ plt.plot(time, model.layers[2].slices[-1].history["T"])
 
 plt.plot(time, model.layers[3].history["T"], "r", label="Plaque de métal")
 plt.legend()
-plt.title("Evolution des grandeurs dans le silo")
+plt.title("Evolution des grandeurs dans la cuve de rétention")
 plt.xlabel("Temps écoulé (s)")
 plt.ylabel("Température (K)")
 plt.show()
 
-pix_beton = len(model.layers[2].history["T"])
-
-hauteur_air, hauteur_corium = 0.1, hauteur_corium  # on redéfinit les hateurs pour avoir un affichage plus sympa
+pix_beton = len(model.layers[2].slices) * 100
+pix_air, pix_corium, pix_acier = int(0.1 * pix_beton), int(0.3 * pix_beton), int(0.1 * pix_beton)
+ticks = [0]
+ticks += [ticks[-1] + pix_acier]
+ticks += [ticks[-1] + pix_beton]
+ticks += [ticks[-1] + pix_corium]
+ticks += [ticks[-1] + pix_air]
 
 plt.imshow(
     np.vstack((
-        np.tile(model.layers[0].history["T"], (int(pix_beton * hauteur_air / hauteur_beton_sacrificiel), 1)),
-        np.tile(model.layers[1].history["T"], (int(pix_beton * hauteur_corium / hauteur_beton_sacrificiel), 1)),
-        model.layers[2].history["T"],
-        np.tile(model.layers[3].history["T"], (5, 1)),
+        np.tile(model.layers[0].history["T"], (pix_air, 1)),
+        np.tile(model.layers[1].history["T"], (pix_corium, 1)),
+        np.repeat(model.layers[2].history["T"], 100, axis=0),
+        np.tile(model.layers[3].history["T"], (pix_acier, 1)),
     )),
-    extent=[0, T1 / 3600, 0, hauteur_beton_sacrificiel + hauteur_corium + hauteur_air], aspect='auto'
+    extent=[0, T1 / 3600, 0, ticks[-1]], aspect='auto'
 )
 plt.colorbar()
-plt.title("Profil de température verticale dans le silo")
+plt.title("Profil de température verticale dans la cuve de rétention")
 plt.xlabel("Temps écoulé (h)")
-plt.ylabel("Température dans le profil = f(y) (K)")
-# plt.show()
+plt.yticks(ticks, labels=reversed(["Air", "Corium", "Béton sacrificiel", "Plaque acier", "Fin"]))
+plt.show()
 
 sys.exit()
 
@@ -209,25 +221,28 @@ plt.legend()
 plt.title("Evolution des grandeurs dans la zone d'étalement")
 plt.xlabel("Temps écoulé (s)")
 plt.ylabel("Température (K)")
-plt.show()
+#plt.show()
+plt.savefig("Graphe zone étalement {} couches.png".format(nombre_couches_beton_zone_etalement), dpi=600)
 
-pix_beton = len(model.layers[2].history["T"])
-
-hauteur_air, hauteur_corium = 0.1, hauteur_corium  # on redéfinit les hateurs pour avoir un affichage plus sympa
+pix_beton = len(model.layers[2].slices) * 100
+pix_air, pix_corium = int(0.1 * pix_beton), int(0.3 * pix_beton)
+ticks = [0]
+ticks += [ticks[-1] + pix_beton]
+ticks += [ticks[-1] + pix_corium]
+ticks += [ticks[-1] + pix_air]
 
 plt.imshow(
     np.vstack((
-        np.tile(model.layers[0].history["T"], (int(pix_beton * hauteur_air / hauteur_beton_sacrificiel), 1)),
-        np.tile(model.layers[1].history["T"], (int(pix_beton * hauteur_corium / hauteur_beton_sacrificiel), 1)),
-        model.layers[2].history["T"],
+        np.tile(model.layers[0].history["T"], (pix_air, 1)),
+        np.tile(model.layers[1].history["T"], (pix_corium, 1)),
+        np.repeat(model.layers[2].history["T"], 100, axis=0),
     )),
-    extent=[
-        0, T2 / 3600,
-        0, hauteur_beton_sacrificiel_zone_etalement + hauteur_corium_zone_etalement + hauteur_air_zone_etalement
-    ], aspect='auto'
+    extent=[0, T2 / 3600, 0, ticks[-1]], aspect='auto'
 )
+
 plt.colorbar()
 plt.title("Profil de température verticale dans la zone d'étalement")
 plt.xlabel("Temps écoulé (h)")
-plt.ylabel("Température dans le profil = f(y) (K)")
-plt.show()
+plt.yticks(ticks, labels=reversed(["Air", "Corium", "Béton sacrificiel", "Fin"]))
+#plt.show()
+plt.savefig("Profil zone étalement {} couches.png".format(nombre_couches_beton_zone_etalement), dpi=600)

@@ -7,16 +7,21 @@ from simulation.exchanges.Exchange import Exchange
 
 class SlicedElement(ElementMixin):
 
-    def __init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, energy_production=0, radiations_inside=False):
+    def __init__(self, T0, density, x, S, cp, thermal_conductivity, number_of_slices, energy_production=0,
+                 radiations_inside=False):
         self.slices = []
 
+        dx = x / number_of_slices
+
         for i in range(number_of_slices):
-            self.slices.append(Element(T0, density, x / number_of_slices, cp, S, thermal_conductivity, energy_production))
+            self.slices.append(Element(
+                T0, density, dx, cp, S, thermal_conductivity, energy_production
+            ))
 
         for i in range(0, number_of_slices - 1):
-            e = Exchange(h=thermal_conductivity, radiations=radiations_inside)
+            e = Exchange(h=thermal_conductivity * S / dx, radiations=radiations_inside)
             self.slices[i].set_next_exchange(e)
-            self.slices[i+1].set_prev_exchange(e)
+            self.slices[i + 1].set_prev_exchange(e)
 
     def set_prev_exchange(self, prev_exchange):
         self.slices[0].set_prev_exchange(prev_exchange)
@@ -32,9 +37,9 @@ class SlicedElement(ElementMixin):
     def prev_exchange(self):
         return self.slices[0].prev_exchange
 
-    def calc_next_step(self, dt):
+    def calc_next_step(self, dt, time):
         for slice in self.slices:
-            slice.calc_next_step(dt)
+            slice.calc_next_step(dt, time)
 
     def go_next_state(self):
         for slice in self.slices:
