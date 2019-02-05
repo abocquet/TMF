@@ -17,9 +17,9 @@ from simulation.models.Model import Model
 ###########################
 
 
-nombre_couches_beton = 5
-timestep = 3e1  # 1/s
-simulation_time = 3600 * 20 # s
+nombre_couches_beton = 100
+timestep = 1e0  # 1/s
+simulation_time = 3600 * 20  # s
 
 # Béton
 hauteur_beton_sacrificiel = 0.5  # metres
@@ -108,7 +108,6 @@ print(T1)
 #plt.title("Conductivité thermique du corium en fonction du temps")
 #plt.legend()
 #plt.show()
-
 #sys.exit()
 
 plt.plot(time, model.layers[0].history["T"], label="Air")
@@ -162,7 +161,7 @@ sys.exit()
 surface_zone_etalement = 170
 profondeur_cables = 0.1  # m
 hauteur_beton_sacrificiel_zone_etalement = profondeur_cables * 2
-nombre_couches_beton_zone_etalement = 50
+nombre_couches_beton_zone_etalement = 100
 hauteur_air_zone_etalement = 10
 
 corium_element = model.layers[1]
@@ -221,8 +220,7 @@ plt.legend()
 plt.title("Evolution des grandeurs dans la zone d'étalement")
 plt.xlabel("Temps écoulé (s)")
 plt.ylabel("Température (K)")
-#plt.show()
-plt.savefig("Graphe zone étalement {} couches.png".format(nombre_couches_beton_zone_etalement), dpi=600)
+plt.show()
 
 pix_beton = len(model.layers[2].slices) * 100
 pix_air, pix_corium = int(0.1 * pix_beton), int(0.3 * pix_beton)
@@ -244,5 +242,4 @@ plt.colorbar()
 plt.title("Profil de température verticale dans la zone d'étalement")
 plt.xlabel("Temps écoulé (h)")
 plt.yticks(ticks, labels=reversed(["Air", "Corium", "Béton sacrificiel", "Fin"]))
-#plt.show()
-plt.savefig("Profil zone étalement {} couches.png".format(nombre_couches_beton_zone_etalement), dpi=600)
+plt.show()
